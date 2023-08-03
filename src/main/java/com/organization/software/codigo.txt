@@ -1,0 +1,277 @@
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\main\java\com\organization\software\DataInitializer.java
+
+Contenido del archivo:
+package com.organization.software;
+
+import com.organization.software.model.Price;
+import com.organization.software.repository.PriceRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+
+@Component
+public class DataInitializer implements CommandLineRunner {
+
+    @Autowired
+    private PriceRepository priceRepository;
+
+    @Override
+    public void run(String... args) throws Exception {
+        // Crea objetos Price con los datos de ejemplo y guárdalos en la base de datos
+        Price price1 = new Price();
+        price1.setBrandId(1L);
+        price1.setProductId(35455L);
+        price1.setStartDate(LocalDateTime.parse("2020-06-14T00:00:00"));
+        price1.setEndDate(LocalDateTime.parse("2020-12-31T23:59:59"));
+        price1.setPriceValue(35.50);
+        price1.setCurrency("EUR");
+
+        Price price2 = new Price();
+        price2.setBrandId(1L);
+        price2.setProductId(35455L);
+        price2.setStartDate(LocalDateTime.parse("2020-06-14T15:00:00"));
+        price2.setEndDate(LocalDateTime.parse("2020-06-14T18:30:00"));
+        price2.setPriceValue(25.45);
+        price2.setCurrency("EUR");
+
+        Price price3 = new Price();
+        price3.setBrandId(1L);
+        price3.setProductId(35455L);
+        price3.setStartDate(LocalDateTime.parse("2020-06-15T00:00:00"));
+        price3.setEndDate(LocalDateTime.parse("2020-06-15T11:00:00"));
+        price3.setPriceValue(30.50);
+        price3.setCurrency("EUR");
+
+        Price price4 = new Price();
+        price4.setBrandId(1L);
+        price4.setProductId(35455L);
+        price4.setStartDate(LocalDateTime.parse("2020-06-15T16:00:00"));
+        price4.setEndDate(LocalDateTime.parse("2020-12-31T23:59:59"));
+        price4.setPriceValue(38.95);
+        price4.setCurrency("EUR");
+
+        // Guardar los objetos Price en la base de datos
+        priceRepository.save(price1);
+        priceRepository.save(price2);
+        priceRepository.save(price3);
+        priceRepository.save(price4);
+    }
+}
+
+
+
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\main\java\com\organization\software\getCode.ps1
+
+Contenido del archivo:
+# Define la ruta relativa para los archivos
+$relativePath = pwd
+$relativePath = Get-Location
+
+# Obtiene la lista de archivos en la ruta relativa
+$files = Get-ChildItem -Path $relativePath -Recurse -File
+
+# Ruta del archivo de salida
+$outputFile = "codigo.txt"
+
+# Función para obtener el contenido de un archivo y escribirlo en el archivo de salida
+function AppendToFile($filePath) {
+    $fileTitle = (Get-Item $filePath).FullName
+    $fileContent = Get-Content $filePath -Raw
+    Add-Content -Path $outputFile -Value ("Titulo De Archivo: $fileTitle`r`n")
+    Add-Content -Path $outputFile -Value ("Contenido del archivo:`r`n$fileContent`r`n`r`n")
+}
+
+# Recorre la lista de archivos y copia su contenido al archivo de salida
+foreach ($file in $files) {
+    AppendToFile $file.FullName
+}
+
+# Muestra mensaje de éxito
+Write-Host "Se ha completado la tarea. Los archivos y su contenido se han copiado en '$outputFile'."
+Write-Host "Gracias"
+
+
+
+
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\main\java\com\organization\software\SoftwareApplication.java
+
+Contenido del archivo:
+package com.organization.software;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@SpringBootApplication
+@EnableJpaRepositories
+public class SoftwareApplication {
+	private static final Logger logger = LoggerFactory.getLogger(SoftwareApplication.class);
+	public static void main(String[] args) {
+		logger.info("Program start");
+		SpringApplication.run(SoftwareApplication.class, args);
+	}
+
+}
+
+
+
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\main\java\com\organization\software\controller\PriceController.java
+
+Contenido del archivo:
+package com.organization.software.controller;
+
+import com.organization.software.model.Price;
+import com.organization.software.service.PriceService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
+
+@RestController
+public class PriceController {
+
+    @Autowired
+    private PriceService priceService;
+
+    @GetMapping("/prices")
+    public ResponseEntity<Price> getPrice(@RequestParam("date") String dateTimeString,
+                                          @RequestParam("productId") Long productId,
+                                          @RequestParam("brandId") Long brandId) {
+
+        LocalDateTime dateTime = LocalDateTime.parse(dateTimeString);
+
+        Price selectedPrice = priceService.getPriceForProductAndBrand(dateTime, productId, brandId);
+
+        if (selectedPrice == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(selectedPrice, HttpStatus.OK);
+    }
+}
+
+
+
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\main\java\com\organization\software\model\Price.java
+
+Contenido del archivo:
+package com.organization.software.model;
+
+import java.time.LocalDateTime;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor; 
+
+@Entity
+@Table(name = "PRICES")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Price {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "BRAND_ID")
+    private long brandId; // Cambiar de Long a long
+
+    @Column(name = "START_DATE")
+    private LocalDateTime startDate;
+
+    @Column(name = "END_DATE")
+    private LocalDateTime endDate;
+
+    @Column(name = "PRICE_LIST")
+    private Long priceList;
+
+    @Column(name = "PRODUCT_ID")
+    private long productId; // Cambiar de Long a long
+
+    @Column(name = "PRIORITY")
+    private Integer priority;
+
+    @Column(name = "PRICE")
+    private Double priceValue;
+
+    @Column(name = "CURR")
+    private String currency;
+
+    // Resto del código de la clase
+}
+
+
+
+
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\main\java\com\organization\software\repository\PriceRepository.java
+
+Contenido del archivo:
+package com.organization.software.repository;
+
+import com.organization.software.model.Price;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import java.time.LocalDateTime;
+import java.util.List;
+
+
+public interface PriceRepository extends JpaRepository<Price, Long> {
+
+    @Query("SELECT p FROM Price p WHERE p.brandId = ?1 AND p.productId = ?2 AND ?3 BETWEEN p.startDate AND p.endDate ORDER BY p.priority DESC")
+    List<Price> findValidPrices(Long brandId, Long productId, LocalDateTime dateTime);
+}
+
+
+
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\main\java\com\organization\software\service\PriceService.java
+
+Contenido del archivo:
+package com.organization.software.service;
+
+import com.organization.software.model.Price;
+import com.organization.software.repository.PriceRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+
+@Service
+public class PriceService {
+
+    @Autowired
+    private PriceRepository priceRepository;
+
+    public Price getPriceForProductAndBrand(LocalDateTime dateTime, Long productId, Long brandId) {
+        List<Price> prices = priceRepository.findValidPrices(brandId, productId, dateTime);
+
+        if (prices.isEmpty()) {
+            return null;
+        }
+
+        return selectPrice(prices);
+    }
+
+    private Price selectPrice(List<Price> prices) {
+        prices.sort(Comparator.comparing(Price::getPriority).reversed());
+        return prices.get(0);
+    }
+}
+
+
+

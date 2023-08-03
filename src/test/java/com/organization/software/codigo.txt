@@ -1,0 +1,122 @@
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\test\java\com\organization\software\getCode.ps1
+
+Contenido del archivo:
+# Define la ruta relativa para los archivos
+$relativePath = pwd
+$relativePath = Get-Location
+
+# Obtiene la lista de archivos en la ruta relativa
+$files = Get-ChildItem -Path $relativePath -Recurse -File
+
+# Ruta del archivo de salida
+$outputFile = "codigo.txt"
+
+# Función para obtener el contenido de un archivo y escribirlo en el archivo de salida
+function AppendToFile($filePath) {
+    $fileTitle = (Get-Item $filePath).FullName
+    $fileContent = Get-Content $filePath -Raw
+    Add-Content -Path $outputFile -Value ("Titulo De Archivo: $fileTitle`r`n")
+    Add-Content -Path $outputFile -Value ("Contenido del archivo:`r`n$fileContent`r`n`r`n")
+}
+
+# Recorre la lista de archivos y copia su contenido al archivo de salida
+foreach ($file in $files) {
+    AppendToFile $file.FullName
+}
+
+# Muestra mensaje de éxito
+Write-Host "Se ha completado la tarea. Los archivos y su contenido se han copiado en '$outputFile'."
+Write-Host "Gracias"
+
+
+
+
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\test\java\com\organization\software\SoftwareApplicationTests.java
+
+Contenido del archivo:
+package com.organization.software;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class SoftwareApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+
+
+
+Titulo De Archivo: C:\Archivos\Desarrollo\Java\software\src\test\java\com\organization\software\service\PriceServiceTest.java
+
+Contenido del archivo:
+package com.organization.software.service;
+
+import com.organization.software.model.Price;
+import com.organization.software.repository.PriceRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+public class PriceServiceTest {
+
+    @Mock
+    private PriceRepository priceRepository;
+
+    @InjectMocks
+    private PriceService priceService;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        Price price1 = new Price();
+        price1.setBrandId(1L);
+        price1.setProductId(35455L);
+        price1.setStartDate(LocalDateTime.of(2020, 6, 14, 0, 0, 0));
+        price1.setEndDate(LocalDateTime.of(2020, 12, 31, 23, 59, 59));
+        price1.setPriceValue(35.50);
+        price1.setCurrency("EUR");
+        price1.setPriority(0);
+
+        Price price2 = new Price();
+        price2.setBrandId(1L);
+        price2.setProductId(35455L);
+        price2.setStartDate(LocalDateTime.of(2020, 6, 14, 15, 0, 0));
+        price2.setEndDate(LocalDateTime.of(2020, 6, 14, 18, 30, 0));
+        price2.setPriceValue(25.45);
+        price2.setCurrency("EUR");
+        price2.setPriority(1);
+
+        when(priceRepository.findValidPrices(1L, 35455L, LocalDateTime.of(2020, 6, 14, 10, 0, 0)))
+                .thenReturn(Arrays.asList(price1));
+        when(priceRepository.findValidPrices(1L, 35455L, LocalDateTime.of(2020, 6, 14, 16, 0, 0)))
+                .thenReturn(Arrays.asList(price2));
+    }
+
+    @Test
+    public void testGetPrice_At10AMOnDay14_Product35455_Brand1() {
+        Price price = priceService.getPriceForProductAndBrand(LocalDateTime.of(2020, 6, 14, 10, 0, 0), 35455L, 1L);
+        assertEquals(35.50, price.getPriceValue());
+    }
+
+    @Test
+    public void testGetPrice_At4PMOnDay14_Product35455_Brand1() {
+        Price price = priceService.getPriceForProductAndBrand(LocalDateTime.of(2020, 6, 14, 16, 0, 0), 35455L, 1L);
+        assertEquals(25.45, price.getPriceValue());
+    }
+}
+
+
+
